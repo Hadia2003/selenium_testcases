@@ -3,26 +3,21 @@ pipeline {
 
   stages {
     stage('Checkout') {
-      steps {
-        // Uses whatever checkout SCM you configured in the job
-        checkout scm
-      }
+      steps { checkout scm }
     }
 
     stage('Build & Test') {
-      // Run this stage inside a Docker container that has:
-      //  - Maven
-      //  - OpenJDK 17
-      //  - Chrome & ChromeDriver for headless tests
       agent {
         docker {
           image 'markhobson/maven-chrome:latest'
-          args  '--shm-size=1g' 
+          args  '--shm-size=1g'
         }
       }
+      environment {
+        MAVEN_OPTS = "-Dmaven.repo.local=$WORKSPACE/.m2/repository"
+      }
       steps {
-        // Make sure Maven runs non-interactively (-B) 
-        // and fails the build on any test failure
+        sh 'mkdir -p .m2/repository'
         sh 'mvn -B clean test'
       }
     }
@@ -30,7 +25,6 @@ pipeline {
 
   post {
     always {
-      // Archive JUnit test results so you can see them in Jenkins
       junit '**/target/surefire-reports/*.xml'
     }
   }
