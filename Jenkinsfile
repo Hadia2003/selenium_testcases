@@ -5,21 +5,32 @@ pipeline {
       args  '--shm-size=1g'
     }
   }
+
   environment {
-    // enforce TLS 1.2 on all Maven downloads
-    MAVEN_OPTS = '-Dhttps.protocols=TLSv1.2'
+    // ensure Maven uses TLSv1.2 and writes to our workspace
+    MAVEN_OPTS      = '-Dhttps.protocols=TLSv1.2'
+    MAVEN_LOCAL_REPO = "${WORKSPACE}/.m2/repository"
   }
-  stage('Build & Test') {
-  steps {
-    // run inside the markhobson image
-    withDockerContainer('markhobson/maven-chrome:latest') {
-      // force Maven to use a repo under WORKSPACE/.m2
-      sh 'mvn -B -Dmaven.repo.local=$WORKSPACE/.m2/repository clean test'
+
+  stages {
+    stage('Build & Test') {
+      steps {
+        // make sure our local repo path exists
+        sh 'mkdir -p ${MAVEN_LOCAL_REPO}'
+
+        // run tests
+        sh """
+          mvn -B \
+            -Dmaven.repo.local=${MAVEN_LOCAL_REPO} \
+            clean test
+        """
+      }
     }
   }
-}
+
   post {
     always {
+      // publish JUnit results
       junit '**/target/surefire-reports/*.xml'
     }
   }
