@@ -1,7 +1,7 @@
 pipeline {
   agent {
     docker {
-      image 'yourdockerhubusername/maven-chrome-custom:latest'
+      image 'markhobson/maven-chrome:latest'
       args  '--shm-size=1g'
     }
   }
