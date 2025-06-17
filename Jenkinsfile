@@ -1,11 +1,10 @@
 pipeline {
   agent {
     docker {
-      image 'markhobson/maven-chrome:latest'
+      image 'yourdockerhubusername/maven-chrome-custom:latest'
       args  '--shm-size=1g'
     }
   }
-
   environment {
     // force TLS1.2 for Maven downloads
     MAVEN_OPTS = '-Dhttps.protocols=TLSv1.2'
