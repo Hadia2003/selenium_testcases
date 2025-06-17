@@ -1,9 +1,14 @@
 pipeline {
-  agent any
+  agent {
+    docker {
+      image 'markhobson/maven-chrome:3.8.5-jdk-17'  // has Maven, JDK 17, Chrome & ChromeDriver pre-installed
+      args '--shm-size=2g --user root'              // increase /dev/shm and run as root so it can write logs
+    }
+  }
 
-  tools {
-    maven 'Maven 3.8.5'       // name of your Jenkins Maven installation
-    jdk 'Java 17'             // name of your Jenkins JDK installation
+  environment {
+    BASE_URL = 'http://18.206.147.230:5000'
+    MAVEN_OPTS = '-Dmaven.wagon.http.pool=false'
   }
 
   stages {
@@ -13,9 +18,9 @@ pipeline {
       }
     }
 
-    stage('Build & Test') {
+    stage('Run Tests') {
       steps {
-        sh 'mvn clean test'
+        sh 'mvn clean test -B'
       }
       post {
         always {
