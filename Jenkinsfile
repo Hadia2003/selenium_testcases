@@ -9,14 +9,15 @@ pipeline {
     // enforce TLS 1.2 on all Maven downloads
     MAVEN_OPTS = '-Dhttps.protocols=TLSv1.2'
   }
-  stages {
-    stage('Build & Test') {
-      steps {
-        sh 'mkdir -p .m2/repository'
-        sh 'mvn -B clean test'
-      }
+  stage('Build & Test') {
+  steps {
+    // run inside the markhobson image
+    withDockerContainer('markhobson/maven-chrome:latest') {
+      // force Maven to use a repo under WORKSPACE/.m2
+      sh 'mvn -B -Dmaven.repo.local=$WORKSPACE/.m2/repository clean test'
     }
   }
+}
   post {
     always {
       junit '**/target/surefire-reports/*.xml'
